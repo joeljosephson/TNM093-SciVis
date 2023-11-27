@@ -489,6 +489,10 @@ function hexToRgb(hex) {
   } : null;
 }
 
+/////////////////////////// !!!!!!!!!!!!!!!!!! ///////////////////////////
+//                          !!              !!                          //
+/////////////////////////// !!!!!!!!!!!!!!!!!! /////////////////////////// 
+
 /// This function is called when the transfer function texture on the GPU should be
 /// updated.  Whether the transfer function values are computed here or just retrieved
 /// from somewhere else is up to decide for the implementation.
@@ -532,8 +536,17 @@ for (let i = MinIntervalStart*4; i < MinIntervalEnd*4; i += 4) {
     let HalfwayMin = MinIntervalStart+(MinIntervalEnd-MinIntervalStart)/2;
     let pixelI = i/4;
 
-    // fade in och ut i 
-    if (pixelI <= HalfwayMin) {
+  // no fade
+  if(!fade.checked) {
+    data[i] = color1.r;
+        data[i + 1] = color1.g;
+        data[i + 2] = color1.b;
+        data[i + 3] = Opacity1;
+  }
+
+  // fade
+  else {
+     if (pixelI <= HalfwayMin) {
       let x1 = (pixelI-MinIntervalStart)/(HalfwayMin-MinIntervalStart);
       data[i] = color1.r * x1;
       data[i + 1] = color1.g * x1;
@@ -545,15 +558,25 @@ for (let i = MinIntervalStart*4; i < MinIntervalEnd*4; i += 4) {
       data[i + 1] = color1.g * -x1;
       data[i + 2] = color1.b * -x1;
       data[i + 3] = Opacity1 * -x1;
-    }
+    } 
   }
+}
 
 // Iterate over the second interval (341 - 682)
 for (let i = MidIntervalStart*4; i < MidIntervalEnd*4; i += 4) {
     let HalfwayMid = MidIntervalStart+(MidIntervalEnd-MidIntervalStart)/2;
     let pixelI = i/4;
 
-    // Apply fading effect within the interval
+  // no fade
+  if(!fade.checked) {
+    data[i] = color2.r;
+        data[i + 1] = color2.g;
+        data[i + 2] = color2.b;
+        data[i + 3] = Opacity2;
+  }
+
+  // fade 
+  else {
     if (pixelI <= HalfwayMid) {
       let x1 = (pixelI-MidIntervalStart)/(HalfwayMid-MidIntervalStart);
       data[i] = color2.r * x1;
@@ -566,31 +589,39 @@ for (let i = MidIntervalStart*4; i < MidIntervalEnd*4; i += 4) {
       data[i + 1] = color2.g * -x1;
       data[i + 2] = color2.b * -x1;
       data[i + 3] = Opacity2 * -x1;
-    }
+    }  
   }
-
+}
   
-
 // Iterate over the third interval (682 - 1024)
   for (let i = MaxIntervalStart*4; i < MaxIntervalEnd*4; i += 4) {
     let HalfwayMax = MaxIntervalStart+(MaxIntervalEnd-MaxIntervalStart)/2;
     let pixelI = i/4;
 
-    // fade in och ut i 
-    if (pixelI <= HalfwayMax) {
-      let x1 = (pixelI-MaxIntervalStart)/(HalfwayMax-MaxIntervalStart);
-      data[i] = color3.r * x1;
-      data[i + 1] = color3.g * x1;
-      data[i + 2] = color3.b * x1;
-      data[i + 3] = Opacity3 * x1 ;
-    } else {
-      let x1 = (pixelI-MaxIntervalEnd)/(MaxIntervalEnd-HalfwayMax);
-      data[i] = color3.r * -x1;
-      data[i + 1] = color3.g * -x1;
-      data[i + 2] = color3.b * -x1;
-      data[i + 3] = Opacity3 * -x1;
+    // no fade
+    if(!fade.checked) {
+    data[i] = color3.r;
+        data[i + 1] = color3.g;
+        data[i + 2] = color3.b;
+        data[i + 3] = Opacity3;
     }
 
+    // fade
+    else {
+      if (pixelI <= HalfwayMax) {
+        let x1 = (pixelI-MaxIntervalStart)/(HalfwayMax-MaxIntervalStart);
+        data[i] = color3.r * x1;
+        data[i + 1] = color3.g * x1;
+        data[i + 2] = color3.b * x1;
+        data[i + 3] = Opacity3 * x1 ;
+      } else {
+        let x1 = (pixelI-MaxIntervalEnd)/(MaxIntervalEnd-HalfwayMax);
+        data[i] = color3.r * -x1;
+        data[i + 1] = color3.g * -x1;
+        data[i + 2] = color3.b * -x1;
+        data[i + 3] = Opacity3 * -x1;
+      }
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1173,6 +1204,8 @@ function postError(msg) {
         <div><input type="radio" name="debug-output" value="slice-transfer" onchange="triggerRendering();">Volume Slice with transfer function</div>
     </p>
   </div>
+
+  <div><input type="checkbox" id="fade" value="fade" onchange="triggerTransferFunctionUpdate();">Trigger fade</div>
 </div>
 
    <!-- Transfer function Canvas -->
@@ -1188,9 +1221,9 @@ function postError(msg) {
 
       Opacity 1 [<span id="alpha1Value">50</span>]: <input type="range" min="0" max="100" value="50" class="slider" id="alpha1" oninput="updateSliderValue('alpha1', 'alpha1Value'); triggerTransferFunctionUpdate()"/> 
       
-      Min intervall start [<span id="MinIntervalStartValue">1</span>]: <input type="range" min="1" max="256" value="0" class="slider" id="MinIntervalStart" oninput="updateSliderValue('MinIntervalStart', 'MinIntervalStartValue'); triggerTransferFunctionUpdate()"/>
+      Min intervall start [<span id="MinIntervalStartValue">1</span>]: <input type="range" min="1" max="255" value="0" class="slider" id="MinIntervalStart" oninput="updateSliderValue('MinIntervalStart', 'MinIntervalStartValue'); triggerTransferFunctionUpdate()"/>
 
-      Min intervall end [<span id="MinIntervalEndValue">85</span>]:  <input type="range" min="0" max="256" value="85" class="slider" id="MinIntervalEnd" oninput="updateSliderValue('MinIntervalEnd', 'MinIntervalEndValue'); triggerTransferFunctionUpdate()"/> 
+      Min intervall end [<span id="MinIntervalEndValue">85</span>]:  <input type="range" min="0" max="255" value="85" class="slider" id="MinIntervalEnd" oninput="updateSliderValue('MinIntervalEnd', 'MinIntervalEndValue'); triggerTransferFunctionUpdate()"/> 
     
     </div>
     
@@ -1199,9 +1232,9 @@ function postError(msg) {
       
       Opacity 2 [<span id="alpha2Value">50</span>]: <input type="range" min="0" max="100" value="50" class="slider" id="alpha2" oninput="updateSliderValue('alpha2', 'alpha2Value'); triggerTransferFunctionUpdate()"/> 
       
-      Mid intervall start [<span id="MidIntervalStartValue">86</span>]: <input type="range" min="0" max="256" value="86" class="slider" id="MidIntervalStart" oninput="updateSliderValue('MidIntervalStart', 'MidIntervalStartValue'); triggerTransferFunctionUpdate()"/> 
+      Mid intervall start [<span id="MidIntervalStartValue">86</span>]: <input type="range" min="0" max="255" value="86" class="slider" id="MidIntervalStart" oninput="updateSliderValue('MidIntervalStart', 'MidIntervalStartValue'); triggerTransferFunctionUpdate()"/> 
 
-      Mid intervall end [<span id="MidIntervalEndValue">170</span>]: <input type="range" min="0" max="256" value="170" class="slider" id="MidIntervalEnd" oninput="updateSliderValue('MidIntervalEnd', 'MidIntervalEndValue'); triggerTransferFunctionUpdate()"/> 
+      Mid intervall end [<span id="MidIntervalEndValue">170</span>]: <input type="range" min="0" max="255" value="170" class="slider" id="MidIntervalEnd" oninput="updateSliderValue('MidIntervalEnd', 'MidIntervalEndValue'); triggerTransferFunctionUpdate()"/> 
 
     </div>
     
@@ -1210,9 +1243,9 @@ function postError(msg) {
     
       Opacity 3 [<span id="alpha3Value">50</span>]: <input type="range" min="0" max="100" value="50" class="slider" id="alpha3" oninput="updateSliderValue('alpha3', 'alpha3Value'); triggerTransferFunctionUpdate()"/>  
 
-      Max intervall start [<span id="MaxIntervalStartValue">171</span>]: <input type="range" min="0" max="256" value="171" class="slider" id="MaxIntervalStart" oninput="updateSliderValue('MaxIntervalStart', 'MaxIntervalStartValue'); triggerTransferFunctionUpdate()"/>  
+      Max intervall start [<span id="MaxIntervalStartValue">171</span>]: <input type="range" min="0" max="255" value="171" class="slider" id="MaxIntervalStart" oninput="updateSliderValue('MaxIntervalStart', 'MaxIntervalStartValue'); triggerTransferFunctionUpdate()"/>  
 
-      Max intervall end  [<span id="MaxIntervalEndValue">255</span>]: <input type="range" min="0" max="256" value="255" class="slider" id="MaxIntervalEnd" oninput="updateSliderValue('MaxIntervalEnd', 'MaxIntervalEndValue'); triggerTransferFunctionUpdate()"/>
+      Max intervall end  [<span id="MaxIntervalEndValue">255</span>]: <input type="range" min="0" max="255" value="255" class="slider" id="MaxIntervalEnd" oninput="updateSliderValue('MaxIntervalEnd', 'MaxIntervalEndValue'); triggerTransferFunctionUpdate()"/>
     
     </div>
   
@@ -1262,19 +1295,15 @@ function postError(msg) {
     .container {
     position: absolute;
     top: 500;
-    right: 195; 
+    right: 10; 
     }
 
-    .camera {
-    position: absolute;
-    top: 492;
-    right: 2000; 
-    }
+ 
 
     #transferCanvas {
     position: absolute;
     top: 0;
-    right: 600;
+    right: 300;
     }
 
     
@@ -1304,7 +1333,7 @@ var histData = Array.from(Array(256)).fill(0);
 
 // Function to load raw data into the histogram
   function loadRawData(loadRawData){
-    // console.log(loadRawData);
+    console.log(loadRawData);
  
 // Populate the histogram with raw data    
     for (let i = 0; i < loadRawData.length; i++) {
@@ -1359,7 +1388,7 @@ let histMax = Math.max(...histData);
     let MinIntervalStartX = 50 + parseInt(document.getElementById('MinIntervalStart').value) * xStep;
     let MinIntervalEndX = 50 + parseInt(document.getElementById('MinIntervalEnd').value) * xStep;
 
-    c.strokeStyle = "red"; // Set the color for the interval lines
+    c.strokeStyle = document.getElementById('color1').value; // Set the color for the interval lines
     c.lineWidth = 2;
 
     // Draw a vertical line at MinIntervalStartX
@@ -1378,7 +1407,7 @@ let histMax = Math.max(...histData);
     let MidIntervalStartX = 50 + parseInt(document.getElementById('MidIntervalStart').value) * xStep;
     let MidIntervalEndX = 50 + parseInt(document.getElementById('MidIntervalEnd').value) * xStep;
 
-    c.strokeStyle = "green"; // Set the color for the interval lines
+    c.strokeStyle = document.getElementById('color2').value; // Set the color for the interval lines
     c.lineWidth = 2;
 
     // Draw a vertical line at MidIntervalStartX
@@ -1397,7 +1426,7 @@ let histMax = Math.max(...histData);
     let MaxIntervalStartX = 50 + parseInt(document.getElementById('MaxIntervalStart').value) * xStep;
     let MaxIntervalEndX = 50 + parseInt(document.getElementById('MaxIntervalEnd').value) * xStep;
 
-    c.strokeStyle = "blue"; // Set the color for the interval lines
+    c.strokeStyle = document.getElementById('color3').value; // Set the color for the interval lines
     c.lineWidth = 2;
 
     // Draw a vertical line at MaxIntervalStartX
@@ -1440,7 +1469,7 @@ let histMax = Math.max(...histData);
     c.translate(45 + 10, 235);
     c.rotate(-Math.PI / 2);
     c.textAlign = "center";
-    c.fillText("Y-axis", 0, -37); // Middle frequency or probability
+    c.fillText("Frequency", 0, -37); // Middle frequency or probability
     c.restore();
 
     // Draw x-axis
@@ -1460,7 +1489,7 @@ let histMax = Math.max(...histData);
 
     // x-label
     c.textAlign = "center";
-    c.fillText("X-axis", 325, 465); // Label for medium voxel density
+    c.fillText("Density value", 325, 465); // Label for medium voxel density
   
     c.lineWidth = 1;
   }
