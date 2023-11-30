@@ -286,7 +286,11 @@ const volumeRenderingFragmentSource = `#version 300 es
           // Blending operation - blends the RGB color with the current color based 
             // on the transparency
 
-          // RGB color is scaled by the transparency a
+         
+
+            // (1.0 - resultat.a) -> represents the accumulated alpha of all layers BEHIND the current layer
+            // color.rgb * color.a ->  RGB color is scaled by the transparency a
+            // visual appearance is influenced by the order of the layers.
          result.rgb = (1.0 - result.a) * color.rgb * color.a + result.rgb;
          result.a = (1.0 - result.a) * color.a + result.a;
 
@@ -311,9 +315,9 @@ const volumeRenderingFragmentSource = `#version 300 es
           //   @TODO: Implement the maximum-intensity projection here
           //
 
-          // if the alpha value (transparency) of the color is less than the alpha value of the current result, it assigns the entire color to the result
+          // if the alpha value (transparency) of the color is greater than the alpha value of the current result, it assigns the entire color to the result
 
-          if (color.a < result.a) {
+          if (color.a > result.a) {
             result = color;
           }
 
@@ -548,12 +552,14 @@ for (let i = MinIntervalStart*4; i < MinIntervalEnd*4; i += 4) {
   else {
      if (pixelI <= HalfwayMin) {
       let x1 = (pixelI-MinIntervalStart)/(HalfwayMin-MinIntervalStart);
+      //x1 = Math.pow(x1, 10); // change the fade strength
       data[i] = color1.r * x1;
       data[i + 1] = color1.g * x1;
       data[i + 2] = color1.b * x1;
       data[i + 3] = Opacity1 * x1 ;
     } else {
       let x1 = (pixelI-MinIntervalEnd)/(MinIntervalEnd-HalfwayMin);
+      //x1 = -Math.pow(x1, 10); // change the fade strength
       data[i] = color1.r * -x1;
       data[i + 1] = color1.g * -x1;
       data[i + 2] = color1.b * -x1;
